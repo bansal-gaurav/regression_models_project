@@ -1,0 +1,72 @@
+---
+title: "Relationship between mles per gallon and transmission type"
+author: "Gaurav Bansal"
+date: "Saturday, July 26, 2014"
+output: pdf_document
+---
+Executive Summary
+---
+
+Through stepwise model selection through minimizing AIC, the output model turned out to be mpg ~
+as.factor(cyl) + hp + wt + as.factor(am). However, performing ANOVA anlysis to compare the above model
+with and without the am variable showed that such two models are likely to be similiar. A Shapiro-Wilk
+test of normality over the residues the above model failed to reject the null hypothesis, validating the anova analysis.Therefore, basing on all the studies, the conclusions are: 1. with the given data, the manual and automatic transmission types do not significantly impact the MPG; 2. with the given data, holding all other variables constant, vehicle of manual transmission have 1.81 increase in MPG compared to vehicle of automatic transmission.
+
+```{r, echo=TRUE}
+#loading the data
+data("mtcars")
+summary(mtcars)
+#changing the values of factor varables to factors
+mtcars$cyl<- as.factor(mtcars$cyl)
+mtcars$vs<- as.factor(mtcars$vs)
+mtcars$am<- as.factor(mtcars$am)
+mtcars$gear<- as.factor(mtcars$gear)
+mtcars$carb<- as.factor(mtcars$carb)
+```
+
+Fit the model taking all factors and then find AIC, the one having the lowest AIC will be the best fit model
+
+```{r, echo=TRUE}
+fit <- lm(mpg~.,mtcars)
+library("MASS")
+x <- stepAIC(fit)
+```
+
+The model with cyl, hp, wt, am is the best fit model, so let us find the summary of this model, wether the values are significant or not
+
+```{r, echo=TRUE}
+
+fit1 <- lm(mpg~cyl+hp+wt+am,mtcars)
+summary(fit1)
+```
+
+After fitting the variable the p-value for AM is found to be 0.20646 which is not significant and we fail to reject the null hpothesis
+
+```{r, echo=TRUE}
+
+fit1 <- lm(mpg~cyl+hp+wt+am,mtcars)
+summary(fit1)
+```
+
+```{r, echo=TRUE}
+#Also, let us test the anova of two models, one with am and one without am
+fit1 <- lm(mpg~cyl+hp+wt+am,mtcars)
+fit2 <- lm(mpg~cyl+hp+wt,mtcars)
+anova(fit1,fit2)
+```
+
+P-value is 0.21 so we fail to reject the null hypothesis, these both the models are similar
+
+```{r, echo=TRUE}
+#test for normality of residues
+shapiro.test(fit1$residuals)
+```
+
+P-value = 0.45, fail to reject the null. So the residues are likely to follow a normal distribution. So our anova test is likely to be valid.
+
+Apendix
+-----
+```{r, echo=TRUE}
+par(mfrow = c(2, 2))
+plot(fit1)
+```
